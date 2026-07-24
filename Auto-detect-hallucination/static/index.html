@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>客服回复幻觉检测</title>
+<style>
+  :root {
+    --bg: #f5f5f5; --card: #fff; --text: #222; --sub: #666;
+    --border: #e0e0e0; --accent: #4f46e5; --accent-hover: #4338ca;
+    --danger: #dc2626; --danger-bg: #fef2f2; --danger-border: #fecaca;
+    --safe: #16a34a; --safe-bg: #f0fdf4; --safe-border: #bbf7d0;
+    --warn: #ea580c; --warn-bg: #fff7ed; --warn-border: #fed7aa;
+    --radius: 8px; --shadow: 0 1px 3px rgba(0,0,0,.08);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font: 14px/1.6 -apple-system, 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  .app { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+  /* Header */
+  .header { margin-bottom: 24px; }
+  .header h1 { font-size: 22px; font-weight: 700; }
+  .header p { color: var(--sub); font-size: 13px; margin-top: 4px; }
+
+  /* Cards */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); }
+  .card-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .card-title .icon { font-size: 18px; }
+
+  /* Upload area */
+  .upload-zone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 32px; text-align: center; cursor: pointer; transition: .2s; }
+  .upload-zone:hover, .upload-zone.drag-over { border-color: var(--accent); background: #f8f7ff; }
+  .upload-zone .icon { font-size: 36px; margin-bottom: 8px; }
+  .upload-zone p { color: var(--sub); font-size: 13px; }
+  .upload-zone .file-name { color: var(--accent); font-weight: 600; margin-top: 8px; }
+  .upload-row { display: flex; gap: 16px; flex-wrap: wrap; }
+  .upload-row .upload-col { flex: 1; min-width: 240px; }
+
+  /* Controls */
+  .controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  select, button, input { font: inherit; }
+  select { padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--card); min-width: 180px; }
+  .btn { padding: 8px 20px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: .15s; display: inline-flex; align-items: center; gap: 6px; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-outline { background: var(--card); border: 1px solid var(--border); color: var(--text); }
+  .btn-outline:hover { background: var(--bg); }
+  .btn-sm { padding: 4px 12px; font-size: 12px; }
+  .toggle-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--sub); }
+
+  /* Progress */
+  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin: 8px 0; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width .3s; }
+  .log-panel { background: #1e1e1e; color: #d4d4d4; border-radius: var(--radius); padding: 12px; max-height: 360px; overflow-y: auto; font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; font-size: 12px; line-height: 1.8; }
+  .log-line { white-space: pre-wrap; word-break: break-all; }
+  .log-hall { color: #f87171; }
+  .log-ok { color: #4ade80; }
+  .log-info { color: #93c5fd; }
+
+  /* Stats */
+  .stats { display: flex; gap: 12px; flex-wrap: wrap; }
+  .stat-card { flex: 1; min-width: 100px; text-align: center; padding: 12px; background: var(--bg); border-radius: var(--radius); }
+  .stat-card .val { font-size: 24px; font-weight: 700; }
+  .stat-card .lbl { font-size: 12px; color: var(--sub); margin-top: 2px; }
+  .stat-card.good .val { color: var(--safe); }
+  .stat-card.warn .val { color: var(--warn); }
+  .stat-card.info .val { color: var(--accent); }
+
+  /* Table */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { background: var(--bg); font-weight: 600; font-size: 12px; color: var(--sub); position: sticky; top: 0; }
+  tr.row-hall { background: var(--danger-bg); border-left: 3px solid var(--danger); }
+  tr.row-ok { background: var(--safe-bg); border-left: 3px solid var(--safe); }
+  tr.row-fp { background: var(--warn-bg); border-left: 3px solid var(--warn); }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+  .badge-danger { background: #fecaca; color: #991b1b; }
+  .badge-safe { background: #bbf7d0; color: #166534; }
+  .badge-warn { background: #fed7aa; color: #9a3412; }
+  .badge-info { background: #e0e7ff; color: #3730a3; }
+
+  .hidden { display: none !important; }
+  .text-sub { color: var(--sub); font-size: 12px; }
+  .mt-8 { margin-top: 8px; }
+  .mt-12 { margin-top: 12px; }
+  .gap-8 { gap: 8px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>🛡️ 客服回复幻觉检测</h1>
+    <p>上传客服回复数据，AI 自动识别编造的政策、参数、能力越界等 7 类幻觉</p>
+  </div>
+
+  <!-- Step 1: Upload -->
+  <div class="card">
+    <div class="card-title"><span class="icon">📁</span> 第一步：上传数据</div>
+    <div class="upload-row">
+      <div class="upload-col">
+        <div class="upload-zone" id="zone-replies" onclick="document.getElementById('file-replies').click()">
+          <div class="icon">📄</div>
+          <p><b>点击或拖拽上传</b></p>
+          <p class="text-sub">检测数据 JSON（需含 id, user_question, system_reply, knowledge_base）</p>
+          <p class="file-name hidden" id="name-replies"></p>
+        </div>
+        <input type="file" id="file-replies" accept=".json" hidden>
+      </div>
+      <div class="upload-col">
+        <div class="upload-zone" id="zone-gt" onclick="document.getElementById('file-gt').click()">
+          <div class="icon">✅</div>
+          <p><b>点击或拖拽上传（可选）</b></p>
+          <p class="text-sub">标注答案 JSON，用于自动评估检测效果</p>
+          <p class="file-name hidden" id="name-gt"></p>
+        </div>
+        <input type="file" id="file-gt" accept=".json" hidden>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: Config -->
+  <div class="card">
+    <div class="card-title"><span class="icon">⚙️</span> 第二步：选择检测模式</div>
+    <div class="controls">
+      <select id="model-select">
+        <option value="">加载模型中...</option>
+      </select>
+      <label class="toggle-row">
+        <input type="checkbox" id="mock-toggle">
+        使用 Mock 规则模式（无需模型，精度较低）
+      </label>
+      <button class="btn btn-primary" id="btn-start" disabled onclick="startDetection()">
+        ▶ 开始检测
+      </button>
+    </div>
+  </div>
+
+  <!-- Step 3: Progress & Results -->
+  <div id="result-area" class="hidden">
+    <!-- Progress -->
+    <div class="card" id="progress-card">
+      <div class="card-title"><span class="icon">⏳</span> 检测进度</div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;">
+        <span id="progress-text">准备中...</span>
+        <span class="text-sub" id="progress-count"></span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      <div class="log-panel" id="log-panel"></div>
+    </div>
+
+    <!-- Stats -->
+    <div class="card hidden" id="stats-card">
+      <div class="card-title"><span class="icon">📊</span> 评估得分</div>
+      <div class="stats" id="stats-row"></div>
+    </div>
+
+    <!-- Table -->
+    <div class="card hidden" id="table-card">
+      <div class="card-title">
+        <span class="icon">📋</span> 检测结果明细
+        <span style="flex:1"></span>
+        <button class="btn btn-outline btn-sm" id="btn-download" onclick="downloadResults()">⬇ 下载 JSON</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>判定</th><th>幻觉类型</th><th>严重程度</th><th>用时</th><th>说明</th>
+            </tr>
+          </thead>
+          <tbody id="result-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  State
+// ═══════════════════════════════════════════════
+let sessionId = null;
+let repliesFile = null;
+let gtFile = null;
+let allResults = [];
+
+// ═══════════════════════════════════════════════
+//  Init: load models
+// ═══════════════════════════════════════════════
+(async () => {
+  try {
+    const resp = await fetch('/models');
+    const data = await resp.json();
+    const sel = document.getElementById('model-select');
+    sel.innerHTML = '';
+    const models = data.models || [];
+    const def = data.default || models[0] || 'qwen3:8b';
+    models.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m;
+      opt.textContent = m;
+      if (m === def) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    if (models.length === 0) {
+      sel.innerHTML = '<option>qwen3:8b</option>';
+    }
+  } catch(e) {
+    document.getElementById('model-select').innerHTML = '<option>qwen3:8b</option>';
+  }
+})();
+
+// ═══════════════════════════════════════════════
+//  File Upload
+// ═══════════════════════════════════════════════
+function setupUpload(zoneId, nameId, fileInputId, onFile) {
+  const zone = document.getElementById(zoneId);
+  const nameEl = document.getElementById(nameId);
+  const input = document.getElementById(fileInputId);
+
+  input.addEventListener('change', () => {
+    if (input.files[0]) {
+      onFile(input.files[0]);
+      nameEl.textContent = '✓ ' + input.files[0].name;
+      nameEl.classList.remove('hidden');
+      checkReady();
+    }
+  });
+
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    if (e.dataTransfer.files[0]) {
+      onFile(e.dataTransfer.files[0]);
+      nameEl.textContent = '✓ ' + e.dataTransfer.files[0].name;
+      nameEl.classList.remove('hidden');
+      checkReady();
+    }
+  });
+}
+
+setupUpload('zone-replies', 'name-replies', 'file-replies', f => { repliesFile = f; });
+setupUpload('zone-gt', 'name-gt', 'file-gt', f => { gtFile = f; });
+
+function checkReady() {
+  document.getElementById('btn-start').disabled = !repliesFile;
+}
+
+// ═══════════════════════════════════════════════
+//  Detection
+// ═══════════════════════════════════════════════
+async function startDetection() {
+  if (!repliesFile) return;
+
+  const btn = document.getElementById('btn-start');
+  btn.disabled = true;
+  btn.textContent = '⏳ 上传中...';
+
+  // 上传文件
+  const form = new FormData();
+  form.append('replies', repliesFile);
+  if (gtFile) form.append('ground_truth', gtFile);
+
+  let uploadResp;
+  try {
+    uploadResp = await fetch('/upload', { method: 'POST', body: form });
+  } catch(e) {
+    alert('上传失败: ' + e.message);
+    btn.disabled = false;
+    btn.textContent = '▶ 开始检测';
+    return;
+  }
+
+  const uploadData = await uploadResp.json();
+  if (uploadData.error) { alert(uploadData.error); btn.disabled = false; btn.textContent = '▶ 开始检测'; return; }
+
+  sessionId = uploadData.session_id;
+
+  // 显示结果区
+  document.getElementById('result-area').classList.remove('hidden');
+  document.getElementById('stats-card').classList.add('hidden');
+  document.getElementById('table-card').classList.add('hidden');
+  document.getElementById('log-panel').innerHTML = '';
+  document.getElementById('progress-fill').style.width = '0%';
+  document.getElementById('progress-text').textContent = '检测中...';
+  document.getElementById('progress-count').textContent = `0 / ${uploadData.total}`;
+  document.getElementById('result-tbody').innerHTML = '';
+  allResults = [];
+
+  btn.textContent = '⏳ 检测中...';
+
+  // SSE 连接
+  const mock = document.getElementById('mock-toggle').checked;
+  const model = document.getElementById('model-select').value;
+  const url = `/detect/${sessionId}?mock=${mock}&model=${encodeURIComponent(model)}`;
+
+  const es = new EventSource(url);
+  const logPanel = document.getElementById('log-panel');
+
+  es.addEventListener('message', e => {
+    const data = JSON.parse(e.data);
+
+    if (data.type === 'progress') {
+      // 日志
+      const item = data.item;
+      const isHall = item.is_hallucination;
+      const cls = isHall ? 'log-hall' : 'log-ok';
+      const status = isHall ? '幻觉' : '正常';
+      const typeStr = item.hallucination_type || '-';
+      const elapsed = item.elapsed || 0;
+      const line = `[${data.current}/${data.total}] ${item.id}  ${status} (${typeStr}) [${elapsed}s]`;
+      logPanel.innerHTML += `<div class="log-line ${cls}">${line}</div>`;
+      logPanel.scrollTop = logPanel.scrollHeight;
+
+      // 进度条
+      const pct = Math.round(data.current / data.total * 100);
+      document.getElementById('progress-fill').style.width = pct + '%';
+      document.getElementById('progress-count').textContent = `${data.current} / ${data.total}`;
+
+      // 表格
+      allResults.push(item);
+
+    } else if (data.type === 'complete') {
+      es.close();
+      btn.textContent = '▶ 开始检测';
+      btn.disabled = !repliesFile;
+      document.getElementById('progress-text').textContent = '检测完成';
+      document.getElementById('progress-fill').style.width = '100%';
+
+      // 渲染表格
+      renderTable(allResults);
+
+      // 渲染评估
+      if (data.evaluation && !data.evaluation.error) {
+        renderStats(data.evaluation);
+      }
+
+      // 滚动到表格
+      document.getElementById('table-card').classList.remove('hidden');
+      document.getElementById('table-card').scrollIntoView({ behavior: 'smooth' });
+
+    } else if (data.type === 'error') {
+      logPanel.innerHTML += `<div class="log-line log-hall">[ERROR] ${data.message}</div>`;
+      es.close();
+      btn.textContent = '▶ 开始检测';
+      btn.disabled = !repliesFile;
+    }
+  });
+
+  es.addEventListener('error', () => {
+    if (es.readyState === EventSource.CLOSED) {
+      btn.textContent = '▶ 开始检测';
+      btn.disabled = !repliesFile;
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  Render
+// ═══════════════════════════════════════════════
+const SEV_MAP = { '致命': 'badge-danger', '严重': 'badge-danger', '高': 'badge-warn', '中': 'badge-info', '低': 'badge-info' };
+
+function renderTable(results) {
+  const tbody = document.getElementById('result-tbody');
+  tbody.innerHTML = results.map((r, i) => {
+    const isHall = r.is_hallucination;
+    let rowCls = isHall ? 'row-hall' : 'row-ok';
+    const statusBadge = isHall
+      ? '<span class="badge badge-danger">幻觉</span>'
+      : '<span class="badge badge-safe">正常</span>';
+    const sev = r.severity || '-';
+    const sevCls = SEV_MAP[sev] || '';
+    const sevBadge = sev !== '-' ? `<span class="badge ${sevCls}">${sev}</span>` : '-';
+    const type = r.hallucination_type || '-';
+    const detail = r.detail || '';
+    const elapsed = r.elapsed || 0;
+    return `<tr class="${rowCls}">
+      <td><b>${r.id}</b></td>
+      <td>${statusBadge}</td>
+      <td>${type}</td>
+      <td>${sevBadge}</td>
+      <td class="text-sub">${elapsed}s</td>
+      <td class="text-sub">${detail}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderStats(ev) {
+  document.getElementById('stats-card').classList.remove('hidden');
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-card ${ev.accuracy >= 0.9 ? 'good' : 'warn'}">
+      <div class="val">${(ev.accuracy * 100).toFixed(1)}%</div><div class="lbl">准确率 Accuracy</div>
+    </div>
+    <div class="stat-card ${ev.precision >= 0.9 ? 'good' : 'warn'}">
+      <div class="val">${(ev.precision * 100).toFixed(1)}%</div><div class="lbl">精确率 Precision</div>
+    </div>
+    <div class="stat-card ${ev.recall >= 0.95 ? 'good' : 'warn'}">
+      <div class="val">${(ev.recall * 100).toFixed(1)}%</div><div class="lbl">召回率 Recall</div>
+    </div>
+    <div class="stat-card ${ev.f1 >= 0.9 ? 'good' : 'warn'}">
+      <div class="val">${(ev.f1 * 100).toFixed(1)}%</div><div class="lbl">F1 Score</div>
+    </div>
+    <div class="stat-card info">
+      <div class="val">${ev.tp + ev.tn}</div><div class="lbl">正确 / ${ev.total}</div>
+    </div>
+    <div class="stat-card ${ev.fp > 0 ? 'warn' : 'good'}">
+      <div class="val">FP:${ev.fp} FN:${ev.fn}</div><div class="lbl">误报 / 漏报</div>
+    </div>
+  `;
+}
+
+function downloadResults() {
+  if (!sessionId) return;
+  const a = document.createElement('a');
+  a.href = `/download/${sessionId}/results`;
+  a.download = 'detection_results.json';
+  a.click();
+}
+</script>
+</body>
+</html>

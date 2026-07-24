@@ -1,0 +1,184 @@
+[
+  {
+    "id": "h01",
+    "is_hallucination": true,
+    "hallucination_type": "政策规则幻觉",
+    "secondary_types": [],
+    "severity": "高",
+    "deviation_mode": "部分歪曲",
+    "detail": "知识库7天无理由退货，回复称全品类支持30天"
+  },
+  {
+    "id": "h02",
+    "is_hallucination": true,
+    "hallucination_type": "产品参数幻觉",
+    "secondary_types": [],
+    "severity": "高",
+    "deviation_mode": "完全编造",
+    "detail": "知识库蓝牙5.0，回复声称蓝牙5.3"
+  },
+  {
+    "id": "h03",
+    "is_hallucination": true,
+    "hallucination_type": "系统能力幻觉",
+    "secondary_types": [],
+    "severity": "严重",
+    "deviation_mode": "能力虚构",
+    "detail": "系统未接入物流接口却虚构查询到包裹位置"
+  },
+  {
+    "id": "h04",
+    "is_hallucination": true,
+    "hallucination_type": "政策规则幻觉",
+    "secondary_types": [],
+    "severity": "高",
+    "deviation_mode": "部分歪曲",
+    "detail": "客服声称支持纸质发票，但知识库明确标注暂不支持"
+  },
+  {
+    "id": "h05",
+    "is_hallucination": true,
+    "hallucination_type": "优惠活动幻觉",
+    "secondary_types": [],
+    "severity": "中",
+    "deviation_mode": "完全编造",
+    "detail": "回复声称存在知识库未记载的满300减50优惠"
+  },
+  {
+    "id": "h06",
+    "is_hallucination": true,
+    "hallucination_type": "产品参数幻觉",
+    "secondary_types": [],
+    "severity": "高",
+    "deviation_mode": "完全编造",
+    "detail": "客服称头层牛皮而知识库为PU合成革"
+  },
+  {
+    "id": "h07",
+    "is_hallucination": true,
+    "hallucination_type": "实体信息幻觉",
+    "secondary_types": [],
+    "severity": "中",
+    "deviation_mode": "完全编造",
+    "detail": "知识库禁止人工告知退货地址，回复编造具体地址和收件人信息"
+  },
+  {
+    "id": "h08",
+    "is_hallucination": true,
+    "hallucination_type": "政策规则幻觉",
+    "secondary_types": [
+      "实体信息幻觉"
+    ],
+    "severity": "高",
+    "deviation_mode": "部分歪曲",
+    "detail": "发货时间与知识库不符"
+  },
+  {
+    "id": "h09",
+    "is_hallucination": true,
+    "hallucination_type": "产品参数幻觉",
+    "secondary_types": [],
+    "severity": "高",
+    "deviation_mode": "完全编造",
+    "detail": "知识库未标注NFC功能，回复却声称支持并描述具体用途"
+  },
+  {
+    "id": "h10",
+    "is_hallucination": true,
+    "hallucination_type": "系统能力幻觉",
+    "secondary_types": [],
+    "severity": "严重",
+    "deviation_mode": "能力虚构",
+    "detail": "客服声称可查询退款进度，但知识库显示系统未接入相关接口"
+  },
+  {
+    "id": "h11",
+    "is_hallucination": true,
+    "hallucination_type": "实体信息幻觉",
+    "secondary_types": [],
+    "severity": "中",
+    "deviation_mode": "完全编造",
+    "detail": "知识库明确无线下门店，回复虚构四城实体体验店"
+  },
+  {
+    "id": "h12",
+    "is_hallucination": true,
+    "hallucination_type": "关键信息遗漏",
+    "secondary_types": [],
+    "severity": "低",
+    "deviation_mode": "关键遗漏",
+    "detail": "未提及花呗和信用卡支付方式"
+  },
+  {
+    "id": "h13",
+    "is_hallucination": true,
+    "hallucination_type": "安全合规幻觉",
+    "secondary_types": [],
+    "severity": "致命",
+    "deviation_mode": "完全编造",
+    "detail": "客服声称孕妇可放心使用，但知识库标注含视黄醇衍生物需咨询医生"
+  },
+  {
+    "id": "h14",
+    "is_hallucination": true,
+    "hallucination_type": "系统能力幻觉",
+    "secondary_types": [],
+    "severity": "严重",
+    "deviation_mode": "能力虚构",
+    "detail": "系统未接入订单修改接口却声称已修改地址"
+  },
+  {
+    "id": "h15",
+    "is_hallucination": true,
+    "hallucination_type": "实体信息幻觉",
+    "secondary_types": [],
+    "severity": "中",
+    "deviation_mode": "完全编造",
+    "detail": "知识库未提及品牌关联关系，却声称是子品牌"
+  },
+  {
+    "id": "h16",
+    "is_hallucination": true,
+    "hallucination_type": "关键信息遗漏",
+    "secondary_types": [],
+    "severity": "低",
+    "deviation_mode": "关键遗漏",
+    "detail": "未提及以实物为准的限定信息"
+  },
+  {
+    "id": "h17",
+    "is_hallucination": true,
+    "hallucination_type": "产品参数幻觉",
+    "secondary_types": [],
+    "severity": "高",
+    "deviation_mode": "完全编造",
+    "detail": "客服称充电头为Type-C接口，但知识库明确标注为USB-A输出"
+  },
+  {
+    "id": "h18",
+    "is_hallucination": true,
+    "hallucination_type": "系统能力幻觉",
+    "secondary_types": [],
+    "severity": "严重",
+    "deviation_mode": "能力虚构",
+    "detail": "声称具备工单升级功能但系统实际无此能力"
+  },
+  {
+    "id": "h19",
+    "is_hallucination": true,
+    "hallucination_type": "优惠活动幻觉",
+    "secondary_types": [],
+    "severity": "中",
+    "deviation_mode": "完全编造",
+    "detail": "回复声称存在知识库未记载的学生优惠"
+  },
+  {
+    "id": "h20",
+    "is_hallucination": true,
+    "hallucination_type": "关键信息遗漏",
+    "secondary_types": [],
+    "severity": "低",
+    "deviation_mode": "关键遗漏",
+    "detail": "未提及30%用户反馈偏大半码的关键信息"
+  }
+]
